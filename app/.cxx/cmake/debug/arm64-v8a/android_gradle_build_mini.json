@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/handamin/Library/Android/sdk/ndk/21.2.6472646/build/cmake/platforms.cmake",
+    "/Users/handamin/Library/Android/sdk/ndk/21.2.6472646/build/cmake/android.toolchain.cmake",
+    "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommands": [
+    "/Users/handamin/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/.cxx/cmake/debug/arm64-v8a\" clean"
+  ],
+  "buildTargetsCommand": "/Users/handamin/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/.cxx/cmake/debug/arm64-v8a\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "gles3jni-Debug-arm64-v8a": {
+      "artifactName": "gles3jni",
+      "buildCommand": "/Users/handamin/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/.cxx/cmake/debug/arm64-v8a\" gles3jni",
+      "abi": "arm64-v8a",
+      "output": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/build/intermediates/cmake/debug/obj/arm64-v8a/libgles3jni.so",
+      "runtimeFiles": []
+    }
+  }
+}

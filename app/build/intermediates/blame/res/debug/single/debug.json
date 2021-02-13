@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/build/intermediates/res/merged/debug/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/res/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/build/intermediates/res/merged/debug/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/res/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/build/intermediates/res/merged/debug/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/res/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/build/intermediates/res/merged/debug/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/res/mipmap-xhdpi/ic_launcher.png"
+    }
+]

@@ -1,0 +1,58 @@
+{
+  "stringTable": {
+    "0": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/.cxx/cmake/release/arm64-v8a",
+    "1": "--target=aarch64-none-linux-android24 --gcc-toolchain=/Users/handamin/Library/Android/sdk/ndk/21.2.6472646/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/handamin/Library/Android/sdk/ndk/21.2.6472646/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dgles3jni_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -std=c++11 -fno-rtti -fno-exceptions -Wall -O2 -DNDEBUG -fPIC"
+  },
+  "buildFiles": [
+    "/Users/handamin/Library/Android/sdk/ndk/21.2.6472646/build/cmake/platforms.cmake",
+    "/Users/handamin/Library/Android/sdk/ndk/21.2.6472646/build/cmake/android.toolchain.cmake",
+    "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommands": [
+    "/Users/handamin/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/.cxx/cmake/release/arm64-v8a\" clean"
+  ],
+  "buildTargetsCommand": "/Users/handamin/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/.cxx/cmake/release/arm64-v8a\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "gles3jni-Release-arm64-v8a": {
+      "buildCommand": "/Users/handamin/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/.cxx/cmake/release/arm64-v8a\" gles3jni",
+      "buildType": "release",
+      "toolchain": "2351076635",
+      "abi": "arm64-v8a",
+      "artifactName": "gles3jni",
+      "files": [
+        {
+          "src": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/cpp/gles3jni.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/cpp/Transform.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/cpp/RendererES2.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/src/main/cpp/RendererES3_cube.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": [],
+      "output": "/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/build/intermediates/cmake/release/obj/arm64-v8a/libgles3jni.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {
+    "2351076635": {
+      "cppCompilerExecutable": "/Users/handamin/Library/Android/sdk/ndk/21.2.6472646/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

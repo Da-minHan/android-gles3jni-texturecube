@@ -1,0 +1,8 @@
+# ninja log v5
+1	334	1613237867	CMakeFiles/gles3jni.dir/RendererES2.cpp.o	a7d91b245a43e56
+0	375	1613237867	CMakeFiles/gles3jni.dir/Transform.cpp.o	b04f1344e4c05155
+0	406	1613237867	CMakeFiles/gles3jni.dir/gles3jni.cpp.o	db474555e187f3b2
+1	1044	1613237868	CMakeFiles/gles3jni.dir/RendererES3_cube.cpp.o	fd518841b64f901a
+1044	1121	1613237868	/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/build/intermediates/cmake/debug/obj/x86_64/libgles3jni.so	30f1a6a3d241e0e3
+1	280	1613237998	CMakeFiles/gles3jni.dir/RendererES3_cube.cpp.o	fd518841b64f901a
+281	436	1613237998	/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/build/intermediates/cmake/debug/obj/x86_64/libgles3jni.so	30f1a6a3d241e0e3

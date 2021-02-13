@@ -1,0 +1,7 @@
+Executable : /Users/handamin/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
+arguments : 
+-C
+/Users/handamin/Documents/GitHub/android-gles3jni-texturecube/app/.cxx/cmake/debug/x86
+gles3jni
+jvmArgs : 
+
