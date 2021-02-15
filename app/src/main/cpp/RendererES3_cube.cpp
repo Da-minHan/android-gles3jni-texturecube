@@ -31,23 +31,23 @@
 static const char TRIANGLE_VERTEX_SHADER[] =
         "#version 300 es\n"
         "uniform mat4 u_mvpMatrix;\n"
-        "layout(location = 0) in vec4 vPosition;\n"
+        "layout(location = 0) in vec3 vPosition;\n"
         "layout(location = 1) in vec4 color;\n"
         "layout(location = 3) in vec2 vTexCoord;\n"
         "out vec4 vColor;\n"
-        "out vec2 TexCoord;\n"
+        "out vec3 TexCoord;\n"
         "void main() {\n"
-        "    gl_Position = u_mvpMatrix * vPosition;\n"
-        "    TexCoord = vTexCoord;\n"
+        "    gl_Position = u_mvpMatrix * vec4(vPosition, 1.0f);\n"
+        "    TexCoord = vPosition;\n"
         "}\n";
 
 static const char TRIANGLE_FRAGMENT_SHADER[] =
         "#version 300 es\n"
         "precision mediump float;\n"
         "in vec4 vColor;\n"
-        "in vec2 TexCoord;\n"
+        "in vec3 TexCoord;\n"
         "out vec4 outColor;\n"
-        "uniform sampler2D ourTexture;\n"
+        "uniform samplerCube ourTexture;\n"
         "void main() {\n"
         "   outColor = texture(ourTexture, TexCoord);\n"
         "}\n";
@@ -318,14 +318,21 @@ void RendererES3::texturing() {
     glActiveTexture(GL_TEXTURE0);
 
     /* Bind the texture object. */
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
 
     /* Load the texture. */
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, theTexture);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, theTexture);
+    for(GLuint i = 0; i < 6; i++)
+    {
+        glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, theTexture
+        );
+    }
 
     /* Set the filtering mode. */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     free(theTexture);
 }
