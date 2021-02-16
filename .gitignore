@@ -1,0 +1,5 @@
+*.bin
+app/.cxx/
+app/build/
+.gradle/
+.idea/
