@@ -19,6 +19,7 @@
 #include <string.h>
 #include "Transform.h"
 #include "Matrix.h"
+#include "Shaders.h"
 
 #define STR(s) #s
 #define STRV(s) STR(s)
@@ -27,30 +28,6 @@
 #define COLOR_ATTRIB 1
 #define ELEMENT_ATTRIB 2
 #define TEXTURE_ATTRIB 3
-
-static const char TRIANGLE_VERTEX_SHADER[] =
-        "#version 300 es\n"
-        "uniform mat4 u_mvpMatrix;\n"
-        "layout(location = 0) in vec3 vPosition;\n"
-        "layout(location = 1) in vec4 color;\n"
-        "layout(location = 3) in vec2 vTexCoord;\n"
-        "out vec4 vColor;\n"
-        "out vec3 TexCoord;\n"
-        "void main() {\n"
-        "    gl_Position = u_mvpMatrix * vec4(vPosition, 1.0f);\n"
-        "    TexCoord = vPosition;\n"
-        "}\n";
-
-static const char TRIANGLE_FRAGMENT_SHADER[] =
-        "#version 300 es\n"
-        "precision mediump float;\n"
-        "in vec4 vColor;\n"
-        "in vec3 TexCoord;\n"
-        "out vec4 outColor;\n"
-        "uniform samplerCube ourTexture;\n"
-        "void main() {\n"
-        "   outColor = texture(ourTexture, TexCoord);\n"
-        "}\n";
 
 class RendererES3: public Renderer {
 public:
@@ -67,7 +44,7 @@ private:
     virtual void unmapTransformBuf();
     virtual void setMVPMatrix();
     virtual void simpeTexturing();
-    virtual void texturing();
+    virtual void texturing(const char * texturepath);
     virtual void draw(unsigned int numInstances);
     virtual void draw_triangle(unsigned int numInstances);
 
@@ -97,66 +74,6 @@ RendererES3::RendererES3()
 }
 
 bool RendererES3::init() {
-    GLfloat cube_vertices[] = {
-            // front
-            -0.5, -0.5,  0.5,
-            0.5, -0.5,  0.5,
-            0.5,  0.5,  0.5,
-            -0.5,  0.5,  0.5,
-            // back
-            -0.5, -0.5, -0.5,
-            0.5, -0.5, -0.5,
-            0.5,  0.5, -0.5,
-            -0.5,  0.5, -0.5
-    };
-
-    GLfloat cube_colors[] = {
-            // front colors
-            1.0, 0.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 0.0, 1.0,
-            1.0, 1.0, 1.0,
-            // back colors
-            1.0, 1.0, 0.0,
-            0.0, 1.0, 1.0,
-            1.0, 0.0, 1.0,
-            0.0, 0.0, 0.0
-    };
-
-    GLubyte cube_elements[] = {
-            // front
-            0, 1, 2,
-            2, 3, 0,
-            // right
-            1, 5, 6,
-            6, 2, 1,
-            // back
-            7, 6, 5,
-            5, 4, 7,
-            // left
-            4, 0, 3,
-            3, 7, 4,
-            // bottom
-            4, 5, 1,
-            1, 0, 4,
-            // top
-            3, 2, 6,
-            6, 7, 3
-    };
-
-    GLfloat cube_tex[] = {
-            // front
-            0.0, 0.0,
-            1.0, 0.0,
-            1.0,  1.0,
-            0.0,  1.0,
-            // back
-            0.0, 0.0,
-            1.0, 0.0,
-            1.0,  1.0,
-            0.0,  1.0
-    };
-
     esMatrixLoadIdentity(mMVPmatrix);
 
     mProgram = createProgram(TRIANGLE_VERTEX_SHADER, TRIANGLE_FRAGMENT_SHADER);
@@ -192,7 +109,7 @@ bool RendererES3::init() {
     glVertexAttribPointer ( TEXTURE_ATTRIB, 2, GL_FLOAT, GL_FALSE, 0, 0 );
     glEnableVertexAttribArray (TEXTURE_ATTRIB);
 
-    texturing();
+    texturing("/data/data/com.android.gles3jni/files/container.bmp");
 
     ALOGV("Using OpenGL ES 3.0 renderer");
     return true;
@@ -244,29 +161,26 @@ void RendererES3::setMVPMatrix() {
     esMatrixLoadIdentity(modelviewMat);
 
     float aspect = getAspect();
-    esPerspective(perspectiveMat, 60.0f, aspect, 0.0f, 100.0f);
+    esPerspective(perspectiveMat, 60.0f, aspect, 0.1f, 100.0f);
 
-    esTranslate(modelviewMat, 0.0f, 0.0f, 0.0f);
-    esRotate(modelviewMat, getAngle(), 1.0f, 1.0f, 1.0f);
-    esScale(modelviewMat, 0.5f, 0.5f, 0.5f);
+    float upVec[3], rightVec[3];
+    float axisY[3] = {0.0f, 1.0f, 0.0f};
+    float lookAtX[3] = {0.0f, 0.0f, 3.0f};
+    crossProduct(axisY, lookAtX, rightVec);
+    crossProduct(rightVec, lookAtX, upVec);
+    esMatrixLookAt ( modelviewMat,
+            0.0f, 0.0f, 2.0f,
+            0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f);
+
+    //esTranslate(modelviewMat, 0.0f, 0.0f, 0.0f);
+    //esRotate(modelviewMat, getAngle(), 1.0f, 1.0f, 1.0f);
+    //esScale(modelviewMat, 0.5f, 0.5f, 0.5f);
 
     esMatrixMultiply ( mMVPmatrix, modelviewMat, perspectiveMat );
 }
 
 void RendererES3::simpeTexturing() {
-    /* 3 x 3 Image,  R G B A Channels RAW Format. */
-    GLubyte pixels[9 * 4] =
-            {
-                    18,  140, 171, 255, /* Some Colour Bottom Left. */
-                    143, 143, 143, 255, /* Some Colour Bottom Middle. */
-                    255, 255, 255, 255, /* Some Colour Bottom Right. */
-                    255, 255, 0,   255, /* Yellow Middle Left. */
-                    0,   255, 255, 255, /* Some Colour Middle. */
-                    255, 0,   255, 255, /* Some Colour Middle Right. */
-                    255, 0,   0,   255, /* Red Top Left. */
-                    0,   255, 0,   255, /* Green Top Middle. */
-                    0,   0,   255, 255, /* Blue Top Right. */
-            };
     /* [includeTextureDefinition] */
 
     /* [placeTextureInMemory] */
@@ -290,9 +204,7 @@ void RendererES3::simpeTexturing() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
-void RendererES3::texturing() {
-    //loadTexture("/data/data/com.android.gles3jni/files/container.bmp", 0, 10, 10);
-    const char * texturepath="/data/data/com.android.gles3jni/files/container.bmp";
+void RendererES3::texturing(const char * texturepath) {
     unsigned int level=0;
     unsigned int width=512;
     unsigned int height=512;
@@ -330,9 +242,11 @@ void RendererES3::texturing() {
         );
     }
 
-    /* Set the filtering mode. */
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     free(theTexture);
 }
@@ -346,6 +260,9 @@ void RendererES3::draw(unsigned int numInstances) {
 void RendererES3::draw_triangle(unsigned int numInstances) {
     glUseProgram(mProgram);
 
+    //glFrontFace(GL_CW);
+    glDepthMask(GL_FALSE);
+    //glDepthFunc(GL_LEQUAL);
     // get matrix's uniform location and set matrix
     setMVPMatrix();
     glUniformMatrix4fv(mLoc, 1, GL_FALSE, (GLfloat*)(&mMVPmatrix[0][0]));
@@ -354,5 +271,4 @@ void RendererES3::draw_triangle(unsigned int numInstances) {
     int size;
     glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
     glDrawElements(GL_TRIANGLES, size / sizeof(GLubyte), GL_UNSIGNED_BYTE, 0);
-
 }

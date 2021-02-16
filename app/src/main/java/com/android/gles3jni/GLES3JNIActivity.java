@@ -38,8 +38,11 @@ public class GLES3JNIActivity extends Activity {
         super.onCreate(icicle);
 
         String privateAssetDirectory = getFilesDir().getAbsolutePath();
-        String textureName = "container.bmp";
-        extractAsset(textureName, privateAssetDirectory);
+        extractAsset("container.bmp", privateAssetDirectory);
+        extractAsset("cube_map.bmp", privateAssetDirectory);
+        extractAsset("back.jpg", privateAssetDirectory);
+
+        Log.d(LOGTAG, privateAssetDirectory + " privateAssetDirectory \n");
 
         mView = new GLES3JNIView(getApplication());
         setContentView(mView);
@@ -80,25 +83,11 @@ public class GLES3JNIActivity extends Activity {
                 ByteBuffer buffer = ByteBuffer.allocate(bytes); //Create a new buffer
                 bitmap.copyPixelsToBuffer(buffer); //Move the byte data to the buffer
 
-                System.out.println("get pixel :" + (byte)bitmap.getPixel(200,200));
-
                 byte[] array = buffer.array();
                 out.write(array);
 
                 out.close();
                 inputStream.close();
-                /*byte buffer[] = new byte[1024];
-                int count = inputStream.read(buffer, 0, 1024);
-
-                while (count > 0)
-                {
-                    out.write(buffer, 0, count);
-                    count = inputStream.read(buffer, 0, 1024);
-                }
-                out.close();
-                inputStream.close();
-                */
-
             }
             catch(Exception e)
             {
