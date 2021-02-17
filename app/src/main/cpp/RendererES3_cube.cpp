@@ -183,16 +183,16 @@ void RendererES3::unmapTransformBuf() {
 
 void RendererES3::setMVPMatrix(GLfloat MVPmatrix[][4], GLfloat perspectiveMat[][4], GLfloat modelviewMat[][4]) {
     float aspect = getAspect();
-    esPerspective(perspectiveMat, 60.0f, aspect, 1.0f, 20.0f);
+    esPerspective(perspectiveMat, 80.0f, aspect, 1.0f, 100.0f);
 /*
     esMatrixLookAt ( modelviewMat,
             0.0f, 0.0f, 2.0f,
             0.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f);
 */
-    esTranslate(modelviewMat, 0.0f, 0.0f, -5.0f);
-    esRotate(modelviewMat, getAngle(), 1.0f, 1.0f, 1.0f);
-    esScale(modelviewMat, 0.5f, 0.5f, 0.5f);
+    //esTranslate(modelviewMat, 0.0f, 0.0f, -1.0f);
+    //esRotate(modelviewMat, getAngle(), 1.0f, 1.0f, 1.0f);
+    //esScale(modelviewMat, 0.5f, 0.5f, 0.5f);
 
     esMatrixMultiply ( MVPmatrix, modelviewMat, perspectiveMat );
 }
@@ -285,7 +285,13 @@ void RendererES3::draw_triangle(unsigned int numInstances) {
 
     // get matrix's uniform location and set matrix
     // cube
-    esTranslate(modelviewMat, 1.0f, 0.0f, 0.0f);
+    esTranslate(modelviewMat, 0.0f, 0.0f, -5.0f);
+    esRotate(modelviewMat, getAngle(), 1.0f, 1.0f, 1.0f);
+    esScale(modelviewMat, 0.5f, 0.5f, 0.5f);
+   // esMatrixLookAt ( modelviewMat,
+     //                0.0f, 0.0f, -1.0f,
+       //              0.0f, 0.0f, -2.0f,
+         //            0.0f, 1.0f, 0.0f);
     setMVPMatrix(mCube.MVPmatrix, perspectiveMat, modelviewMat);
     glUniformMatrix4fv(mCube.loc, 1, GL_FALSE, (GLfloat*)(&(mCube.MVPmatrix[0][0])));
 
@@ -293,12 +299,22 @@ void RendererES3::draw_triangle(unsigned int numInstances) {
     glDrawElements(GL_TRIANGLES, size / sizeof(GLubyte), GL_UNSIGNED_BYTE, 0);
 
     // skybox cube
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_FRONT);
+
     esMatrixLoadIdentity(perspectiveMat);
     esMatrixLoadIdentity(modelviewMat);
-    esTranslate(modelviewMat, -1.0f, 0.0f, 0.0f);
+    esTranslate(modelviewMat, 0.0f, 0.0f, -5.0f);
+    esScale(modelviewMat, 10.0f, 10.0f, 10.0f);
+    /*esMatrixLookAt ( modelviewMat,
+                     0.0f, 0.0f, -1.0f,
+                     0.0f, 0.0f, -2.0f,
+                     0.0f, 1.0f, 0.0f);
+*/
     setMVPMatrix(mSkybox.MVPmatrix, perspectiveMat, modelviewMat);
     glUniformMatrix4fv(mSkybox.loc, 1, GL_FALSE, (GLfloat*)(&(mSkybox.MVPmatrix[0][0])));
 
     glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
     glDrawElements(GL_TRIANGLES, size / sizeof(GLubyte), GL_UNSIGNED_BYTE, 0);
+    //glDisable(GL_CULL_FACE);
 }
