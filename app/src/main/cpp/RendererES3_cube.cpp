@@ -29,6 +29,20 @@
 #define ELEMENT_ATTRIB 2
 #define TEXTURE_ATTRIB 3
 
+struct image {
+    const char * path;
+    GLuint width;
+    GLuint height;
+    GLuint channels_per_pixel;
+};
+
+struct model {
+    GLint loc;
+    GLfloat MVPmatrix[4][4];
+    GLuint texture;
+    struct image data;
+};
+
 class RendererES3: public Renderer {
 public:
     RendererES3();
@@ -42,9 +56,9 @@ private:
     virtual void unmapOffsetBuf();
     virtual float* mapTransformBuf();
     virtual void unmapTransformBuf();
-    virtual void setMVPMatrix();
+    virtual void setMVPMatrix(GLfloat MVPmatrix[][4], GLfloat perspectiveMat[][4], GLfloat modelviewMat[][4]);
     virtual void simpeTexturing();
-    virtual void texturing(const char * texturepath);
+    virtual void cubeTexturing(struct model * m);
     virtual void draw(unsigned int numInstances);
     virtual void draw_triangle(unsigned int numInstances);
 
@@ -56,6 +70,9 @@ private:
     GLint mLoc;
     GLfloat mMVPmatrix[4][4];
     GLuint texture;
+
+    struct model mCube;
+    struct model mSkybox;
 };
 
 Renderer* createES3Renderer() {
@@ -71,16 +88,26 @@ RendererES3::RendererES3()
         :   mEglContext(eglGetCurrentContext()),
             mProgram(0),
             mVBState(0){
+
+    esMatrixLoadIdentity(mCube.MVPmatrix);
+    esMatrixLoadIdentity(mSkybox.MVPmatrix);
+
+    mCube.data.path = "/data/data/com.android.gles3jni/files/container.bmp";
+    mCube.data.width = mCube.data.height = 512;
+    mCube.data.channels_per_pixel = 4;
+
+    mSkybox.data.path = "/data/data/com.android.gles3jni/files/container.bmp";
+    mSkybox.data.width = mSkybox.data.height = 512;
+    mSkybox.data.channels_per_pixel = 4;
 }
 
 bool RendererES3::init() {
-    esMatrixLoadIdentity(mMVPmatrix);
-
     mProgram = createProgram(TRIANGLE_VERTEX_SHADER, TRIANGLE_FRAGMENT_SHADER);
     if (!mProgram)
         return false;
 
-    mLoc = glGetUniformLocation(mProgram, "u_mvpMatrix");
+    mCube.loc = glGetUniformLocation(mProgram, "u_mvpMatrix");
+    mSkybox.loc = glGetUniformLocation(mProgram, "u_mvpMatrix");
 
     glGenBuffers(4, mVBO);
 
@@ -109,7 +136,8 @@ bool RendererES3::init() {
     glVertexAttribPointer ( TEXTURE_ATTRIB, 2, GL_FLOAT, GL_FALSE, 0, 0 );
     glEnableVertexAttribArray (TEXTURE_ATTRIB);
 
-    texturing("/data/data/com.android.gles3jni/files/container.bmp");
+    cubeTexturing(&mCube);
+    cubeTexturing(&mSkybox);
 
     ALOGV("Using OpenGL ES 3.0 renderer");
     return true;
@@ -153,31 +181,20 @@ void RendererES3::unmapTransformBuf() {
     glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 
-void RendererES3::setMVPMatrix() {
-    GLfloat perspectiveMat[4][4];
-    GLfloat modelviewMat[4][4];
-
-    esMatrixLoadIdentity(perspectiveMat);
-    esMatrixLoadIdentity(modelviewMat);
-
+void RendererES3::setMVPMatrix(GLfloat MVPmatrix[][4], GLfloat perspectiveMat[][4], GLfloat modelviewMat[][4]) {
     float aspect = getAspect();
-    esPerspective(perspectiveMat, 60.0f, aspect, 0.1f, 100.0f);
-
-    float upVec[3], rightVec[3];
-    float axisY[3] = {0.0f, 1.0f, 0.0f};
-    float lookAtX[3] = {0.0f, 0.0f, 3.0f};
-    crossProduct(axisY, lookAtX, rightVec);
-    crossProduct(rightVec, lookAtX, upVec);
+    esPerspective(perspectiveMat, 60.0f, aspect, 1.0f, 20.0f);
+/*
     esMatrixLookAt ( modelviewMat,
             0.0f, 0.0f, 2.0f,
             0.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f);
+*/
+    esTranslate(modelviewMat, 0.0f, 0.0f, -5.0f);
+    esRotate(modelviewMat, getAngle(), 1.0f, 1.0f, 1.0f);
+    esScale(modelviewMat, 0.5f, 0.5f, 0.5f);
 
-    //esTranslate(modelviewMat, 0.0f, 0.0f, 0.0f);
-    //esRotate(modelviewMat, getAngle(), 1.0f, 1.0f, 1.0f);
-    //esScale(modelviewMat, 0.5f, 0.5f, 0.5f);
-
-    esMatrixMultiply ( mMVPmatrix, modelviewMat, perspectiveMat );
+    esMatrixMultiply ( MVPmatrix, modelviewMat, perspectiveMat );
 }
 
 void RendererES3::simpeTexturing() {
@@ -204,33 +221,29 @@ void RendererES3::simpeTexturing() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
-void RendererES3::texturing(const char * texturepath) {
-    unsigned int level=0;
-    unsigned int width=512;
-    unsigned int height=512;
-    GLubyte * theTexture;
-    theTexture = (GLubyte *)malloc(sizeof(GLubyte) * width * height * CHANNELS_PER_PIXEL);
+void RendererES3::cubeTexturing(struct model * m) {
+    GLubyte * image = (GLubyte *)malloc(sizeof(GLubyte) * m->data.width * m->data.height * m->data.channels_per_pixel);
+    FILE * image_file = fopen(m->data.path, "r");
 
-    FILE * theFile = fopen(texturepath, "r");
-    if(theFile == NULL)
+    if(image_file == NULL)
     {
         ALOGE("Failure to load the texture");
         return;
     }
 
-    fread(theTexture, width * height * CHANNELS_PER_PIXEL, 1, theFile);
+    fread(image, m->data.width * m->data.height * m->data.channels_per_pixel, 1, image_file);
 
     /* Use tightly packed data. */
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     /* Generate a texture object. */
-    glGenTextures((GLsizei)1, &texture);
+    glGenTextures((GLsizei)1, &(m->texture));
 
     /* Activate a texture. */
     glActiveTexture(GL_TEXTURE0);
 
     /* Bind the texture object. */
-    glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m->texture);
 
     /* Load the texture. */
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, theTexture);
@@ -238,7 +251,7 @@ void RendererES3::texturing(const char * texturepath) {
     {
         glTexImage2D(
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, theTexture
+                0, GL_RGBA, m->data.width, m->data.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image
         );
     }
 
@@ -248,7 +261,7 @@ void RendererES3::texturing(const char * texturepath) {
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-    free(theTexture);
+    free(image);
 }
 
 void RendererES3::draw(unsigned int numInstances) {
@@ -258,17 +271,34 @@ void RendererES3::draw(unsigned int numInstances) {
 }
 
 void RendererES3::draw_triangle(unsigned int numInstances) {
+    int size;
+    GLfloat perspectiveMat[4][4], modelviewMat[4][4];
+
+    esMatrixLoadIdentity(perspectiveMat);
+    esMatrixLoadIdentity(modelviewMat);
+
     glUseProgram(mProgram);
 
     //glFrontFace(GL_CW);
-    glDepthMask(GL_FALSE);
+    //glDepthMask(GL_FALSE);
     //glDepthFunc(GL_LEQUAL);
-    // get matrix's uniform location and set matrix
-    setMVPMatrix();
-    glUniformMatrix4fv(mLoc, 1, GL_FALSE, (GLfloat*)(&mMVPmatrix[0][0]));
-    //simpeTexturing();
 
-    int size;
+    // get matrix's uniform location and set matrix
+    // cube
+    esTranslate(modelviewMat, 1.0f, 0.0f, 0.0f);
+    setMVPMatrix(mCube.MVPmatrix, perspectiveMat, modelviewMat);
+    glUniformMatrix4fv(mCube.loc, 1, GL_FALSE, (GLfloat*)(&(mCube.MVPmatrix[0][0])));
+
+    glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+    glDrawElements(GL_TRIANGLES, size / sizeof(GLubyte), GL_UNSIGNED_BYTE, 0);
+
+    // skybox cube
+    esMatrixLoadIdentity(perspectiveMat);
+    esMatrixLoadIdentity(modelviewMat);
+    esTranslate(modelviewMat, -1.0f, 0.0f, 0.0f);
+    setMVPMatrix(mSkybox.MVPmatrix, perspectiveMat, modelviewMat);
+    glUniformMatrix4fv(mSkybox.loc, 1, GL_FALSE, (GLfloat*)(&(mSkybox.MVPmatrix[0][0])));
+
     glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
     glDrawElements(GL_TRIANGLES, size / sizeof(GLubyte), GL_UNSIGNED_BYTE, 0);
 }
